@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -145,7 +144,8 @@ func main() {
 
 			b, err := ioutil.ReadFile(googleCredentialsPath)
 			if err != nil {
-				log.Fatalf("Unable to read client secret file: %v", err)
+				logrus.Errorf("Unable to read client secret file: %v", err)
+				return err
 			}
 
 			googleOauthConfig, err = google.ConfigFromJSON(b, sheets.SpreadsheetsScope)
@@ -271,7 +271,8 @@ func googleRedirectHandler(w http.ResponseWriter, r *http.Request) {
 func googleExchangeTokenHandler(w http.ResponseWriter, r *http.Request) {
 	tok, err := googleOauthConfig.Exchange(context.TODO(), r.FormValue("code"))
 	if err != nil {
-		log.Fatalf("Unable to retrieve token from web: %v", err)
+		logrus.Errorf("Unable to retrieve token from web: %v", err)
+		return
 	}
 
 	saveGoogleToken(googleTokenPath, tok)
@@ -339,7 +340,8 @@ func saveToken(path string, token *Token) {
 	fmt.Printf("Saving credential file to: %s\n", path)
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Fatalf("Unable to cache oauth token: %v", err)
+		logrus.Errorf("Unable to cache oauth token: %v", err)
+		return
 	}
 	defer f.Close()
 	json.NewEncoder(f).Encode(token)
@@ -349,7 +351,8 @@ func saveGoogleToken(path string, token *oauth2.Token) {
 	fmt.Printf("Saving credential file to: %s\n", path)
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Fatalf("Unable to cache oauth token: %v", err)
+		logrus.Errorf("Unable to cache oauth token: %v", err)
+		return
 	}
 	defer f.Close()
 	json.NewEncoder(f).Encode(token)
@@ -359,7 +362,8 @@ func saveRecentActivityID(path string, activityID string) {
 	fmt.Printf("Saving activity id file to: %s\n", path)
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Fatalf("Unable to cache oauth token: %v", err)
+		logrus.Errorf("Unable to cache oauth token: %v", err)
+		return
 	}
 	defer f.Close()
 	json.NewEncoder(f).Encode(activityID)
