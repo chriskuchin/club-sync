@@ -65,6 +65,7 @@ var (
 	stravaTokenPath       string
 	resumeTokenPath       string
 	googleCredentialsPath string
+	initialResumeToken    string
 
 	contestStart = time.Date(2020, time.August, 12, 11, 59, 0, 0, time.UTC)
 	port         = 8080
@@ -130,8 +131,18 @@ func main() {
 				EnvVars:     []string{"GOOGLE_CREDENTIALS_FILE"},
 				Destination: &googleCredentialsPath,
 			},
+			&cli.StringFlag{
+				Name:        "resume",
+				Usage:       "The path to save the google token or look for the strava token",
+				EnvVars:     []string{"RESUME_TOKEN"},
+				Destination: &initialResumeToken,
+			},
 		},
 		Action: func(c *cli.Context) error {
+			if initialResumeToken != "" {
+				saveRecentActivityID(resumeTokenPath, initialResumeToken)
+			}
+
 			b, err := ioutil.ReadFile(googleCredentialsPath)
 			if err != nil {
 				log.Fatalf("Unable to read client secret file: %v", err)
