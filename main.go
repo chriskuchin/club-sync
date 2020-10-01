@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/sha1"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -72,7 +71,7 @@ var (
 	authenticator *strava.OAuthAuthenticator
 	callbackURL   = fmt.Sprintf("http://localhost:%d/strava/exchange_token", port)
 
-	interval time.Duration = 1 * time.Hour
+	interval time.Duration
 )
 
 func main() {
@@ -135,6 +134,13 @@ func main() {
 				Usage:       "The path to save the google token or look for the strava token",
 				EnvVars:     []string{"RESUME_TOKEN"},
 				Destination: &initialResumeToken,
+			},
+			&cli.DurationFlag{
+				Name:        "interval",
+				Usage:       "The path to save the google token or look for the strava token",
+				Value:       1 * time.Hour,
+				EnvVars:     []string{"INTERVAL"},
+				Destination: &interval,
 			},
 		},
 		Action: func(c *cli.Context) error {
@@ -463,7 +469,7 @@ func getClubActivities(token string, clubID, batchSize, page int) []Activity {
 
 func (a *Activity) getActivityHash() string {
 	// firstName+ lastname+distance+name
-	activityID := fmt.Sprintf("%s%s%f%s", a.Athlete.FirstName, a.Athlete.LastName, a.Distance, base64.StdEncoding.EncodeToString([]byte(a.Name)))
+	activityID := fmt.Sprintf("%s%s%f%d", a.Athlete.FirstName, a.Athlete.LastName, a.Distance, a.ElapsedTime)
 	h := sha1.New()
 	h.Write([]byte(activityID))
 
